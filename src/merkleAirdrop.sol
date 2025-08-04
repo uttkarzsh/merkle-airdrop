@@ -9,9 +9,12 @@ contract MerkleAirdrop {
     address[] claimers;
     bytes32 private immutable i_merkleRoot;
     IERC20 private immutable i_limeToken;
+    mapping(address=>bool) private claimed;
 
     error MerkleAirdrop__InvalidProof();
     error MerkleAirdrop__AlreadyClaimed();
+
+    event ClaimedToken(address account, uint256 amount);
 
     constructor(bytes32 merkleRoot, IERC20 limeToken){
         i_merkleRoot = merkleRoot;
@@ -19,11 +22,21 @@ contract MerkleAirdrop {
     }
 
     function claimTokens(address account, uint256 amount, bytes32[] calldata merkleProof) external{
+        require(claimed[account]==false, MerkleAirdrop__AlreadyClaimed());
         bytes32 leaf = keccak256(abi.encode(account, amount));
         require(MerkleProof.verify(merkleProof, i_merkleRoot, leaf), MerkleAirdrop__InvalidProof());
 
+        claimed[account] = true;
         i_limeToken.safeTransfer(account, amount);
+        emit ClaimedToken(account, amount);
     }
 
+    function getMerkleRoot() view public returns(bytes32){
+        return i_merkleRoot;
+    }
+
+    function getTokenAddress() view public returns(IERC20){
+        return i_limeToken;
+    }
 
 }
