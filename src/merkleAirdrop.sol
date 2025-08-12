@@ -23,7 +23,7 @@ contract MerkleAirdrop {
 
     function claimTokens(address account, uint256 amount, bytes32[] calldata merkleProof) external{
         require(claimed[account]==false, MerkleAirdrop__AlreadyClaimed());
-        bytes32 leaf = keccak256(abi.encode(account, amount));
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(account, amount))));
         require(MerkleProof.verify(merkleProof, i_merkleRoot, leaf), MerkleAirdrop__InvalidProof());
 
         claimed[account] = true;
