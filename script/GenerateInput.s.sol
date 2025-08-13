@@ -15,10 +15,10 @@ contract GenerateInput is Script {
     function run() public {
         types[0] = "address";
         types[1] = "uint";
-        whitelist[0] = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-        whitelist[1] = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
-        whitelist[2] = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC";
-        whitelist[3] = "0x90F79bf6EB2c4f870365E785982E1f101E93b906";
+        whitelist[0] = "0x29E3b139f4393aDda86303fcdAa35F60Bb7092bF";
+        whitelist[1] = "0x537C8f3d3E18dF5517a58B3fB9D9143697996802";
+        whitelist[2] = "0xc0A55e2205B289a967823662B841Bd67Aa362Aec";
+        whitelist[3] = "0x90561e5Cd8025FA6F52d849e8867C14A77C94BA0";
         count = whitelist.length;
         string memory input = _createJSON();
 
