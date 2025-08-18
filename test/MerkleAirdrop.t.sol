@@ -4,8 +4,10 @@ pragma solidity ^0.8.19;
 import { Test, console } from "forge-std/Test.sol";
 import { MerkleAirdrop } from "../src/MerkleAirdrop.sol";
 import { LimeToken } from "../src/LimeToken.sol";
-
-contract MerkleAirdropTest is Test {
+import { ZkSyncChainChecker } from "foundry-devops/src/ZkSyncChainChecker.sol";
+import { DeployMerkleAirdrop } from "../script/DeployMerkleAirDrop.s.sol";
+ 
+contract MerkleAirdropTest is ZkSyncChainChecker, Test {
     MerkleAirdrop airdrop;
     LimeToken limetoken;
 
@@ -21,10 +23,16 @@ contract MerkleAirdropTest is Test {
     uint256 SUPPLY = 4 * AMOUNT;
 
     function setUp() public{
-        limetoken = new LimeToken();
-        airdrop = new MerkleAirdrop(ROOT, limetoken);
-        limetoken.mint(limetoken.owner(), SUPPLY);
-        limetoken.transfer(address(airdrop), SUPPLY);
+        if(!isZkSyncChain()){
+            DeployMerkleAirdrop deployer = new DeployMerkleAirdrop();
+            (airdrop, limetoken) = deployer.deployMerkleAirdrop();
+        } else {
+            limetoken = new LimeToken();
+            airdrop = new MerkleAirdrop(ROOT, limetoken);
+            limetoken.mint(limetoken.owner(), SUPPLY);
+            limetoken.transfer(address(airdrop), SUPPLY);
+        }
+
         (user1, key1) = makeAddrAndKey("user1");
         (user2, key2) = makeAddrAndKey("user2");
         (user3, key3) = makeAddrAndKey("user3");
@@ -33,8 +41,10 @@ contract MerkleAirdropTest is Test {
 
     function testClaimTokens() public {
         uint256 initialBalanceU1 = limetoken.balanceOf(user1);
-        vm.prank(user1);
-        airdrop.claimTokens(user1, AMOUNT, proof1);
+        bytes32 digest = airdrop.getMessageHash(user1, AMOUNT);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(key1, digest);
+        vm.prank(user2);
+        airdrop.claimTokens(user1, AMOUNT, proof1, v, r, s);
         uint256 finalBalanceU1 = limetoken.balanceOf(user1);
 
         console.log("Balance : ", finalBalanceU1);
